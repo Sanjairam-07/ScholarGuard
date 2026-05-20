@@ -1,5 +1,12 @@
-fastapi uvicorn python-multipart
-pdfplumber transformers torch
-requests python-whois
-opencv-python pyzbar   # for QR scanning
-python-dotenv pytest
+fastapi 
+uvicorn 
+python-multipart
+pdfplumber 
+transformers 
+torch
+requests 
+python-whois
+opencv-python 
+pyzbar   # for QR scanning
+python-dotenv 
+pytest
