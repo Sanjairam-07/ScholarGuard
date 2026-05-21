@@ -10,3 +10,4 @@ opencv-python
 pyzbar   # for QR scanning
 python-dotenv 
 pytest
+python-whois
