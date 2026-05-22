@@ -11,3 +11,9 @@ pyzbar   # for QR scanning
 python-dotenv 
 pytest
 python-whois
+opencv-python 
+pyzbar 
+pdf2image
+Pillow
+fitz
+PyMuPDF

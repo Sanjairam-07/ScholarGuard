@@ -16,7 +16,9 @@ def check_ssl(url: str) -> dict:
         "ssl_valid": False,
         "ssl_expiry": None,
         "days_until_expiry": None,
-        "ssl_error": None
+        "ssl_error": None,
+        "domain_age_days": None,
+        "young_domain_warning": False
     }
     try:
         context = ssl.create_default_context()
@@ -36,6 +38,20 @@ def check_ssl(url: str) -> dict:
         result["ssl_error"] = f"SSL verification failed: {str(e)}"
     except Exception as e:
         result["ssl_error"] = f"Could not check SSL: {str(e)}"
+    try:
+        age_info = check_domain_age(url)
+
+        result["domain_age_days"] = age_info["domain_age_days"]
+
+        # Domain younger than 30 days = suspicious
+        if (
+            age_info["domain_age_days"] is not None and
+            age_info["domain_age_days"] < 30
+        ):
+            result["young_domain_warning"] = True
+
+    except Exception:
+        pass
     return result
 
 def check_domain_age(url: str) -> dict:
@@ -90,19 +106,51 @@ def full_ssl_report(url: str) -> dict:
     spoof_info = check_domain_spoof(url)
 
     risk_flags = []
+
+    # SSL Issues
     if not ssl_info["ssl_valid"]:
         risk_flags.append("Invalid or missing SSL certificate")
-    if ssl_info["days_until_expiry"] and ssl_info["days_until_expiry"] < 15:
+
+    # SSL Expiry Warning
+    if (
+        ssl_info["days_until_expiry"] and
+        ssl_info["days_until_expiry"] < 15
+    ):
         risk_flags.append("SSL certificate expiring very soon")
+
+    # New Domain Warning (< 6 months)
     if age_info["is_new_domain"]:
-        risk_flags.append(f"New domain (only {age_info['domain_age_days']} days old)")
+        risk_flags.append(
+            f"New domain (only {age_info['domain_age_days']} days old)"
+        )
+
+    # VERY Young Domain Warning (< 30 days)
+    young_domain_warning = False
+
+    if (
+        age_info["domain_age_days"] is not None and
+        age_info["domain_age_days"] < 30
+    ):
+        young_domain_warning = True
+
+        risk_flags.append(
+            f"Very young domain ({age_info['domain_age_days']} days old)"
+        )
+
+    # Spoof Detection
     if spoof_info["is_spoofed"]:
-        risk_flags.append(f"Domain may be spoofing: {spoof_info['spoof_target']}")
+        risk_flags.append(
+            f"Domain may be spoofing: {spoof_info['spoof_target']}"
+        )
 
     return {
         "ssl": ssl_info,
         "domain_age": age_info,
         "spoof_check": spoof_info,
+
+        # NEW FIELD
+        "young_domain_warning": young_domain_warning,
+
         "risk_flags": risk_flags,
         "risk_count": len(risk_flags)
     }

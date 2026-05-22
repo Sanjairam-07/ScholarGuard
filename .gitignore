@@ -4,6 +4,7 @@ __pycache__/
 
 # Environment
 .env
+.env.local
 
 # Jupyter
 .ipynb_checkpoints/
